@@ -926,6 +926,8 @@ document.querySelectorAll('[data-count]').forEach(el=>cObs.observe(el));
 
 /* ============ CHART DEFAULTS ============ */
 if(window.Chart){
+  Chart.defaults.maintainAspectRatio=false;
+  Chart.defaults.responsive=true;
   Chart.defaults.font.family=FONT;
   Chart.defaults.color=C.ink2;
   Chart.defaults.font.size=11.5;
