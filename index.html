@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nike (NKE) — First Principles Research Dashboard</title>
+<meta name="description" content="A first-principles interactive research dashboard for Nike, Inc. (NYSE: NKE) — business model, turnaround, financials, valuation and the bull/bear debate, built from UBS, Goldman Sachs, Bernstein & AlphaSense research.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css">
+<style>
+:root{
+  --bg:#0a0a0b; --bg2:#0f0f11; --surface:#16161a; --surface2:#1c1c22; --surface3:#23232b;
+  --ink:#f4f4f1; --ink2:#b6b6ae; --muted:#86867e; --hair:#2b2b31; --hair2:#35353d;
+  --accent:#ff6b2c;      /* Nike volt-orange primary */
+  --accent2:#f4b400;     /* amber */
+  --blue:#3f8ef0; --aqua:#22b183; --yellow:#e0a52b; --violet:#9b8bef; --red:#e5675f; --magenta:#dd6aa0; --orange:#e56b34;
+  --bull:#26c281; --bear:#ef5350; --neutral:#9aa0a6;
+  --good:#22c55e; --warn:#f5b53d; --serious:#f08a52; --crit:#e5484d;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+  --maxw:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:74px}
+body{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(255,107,44,.10), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgba(63,142,240,.08), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+h1,h2,h3,h4{line-height:1.15;letter-spacing:-.01em;font-weight:750}
+a{color:var(--accent);text-decoration:none}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- NAV ---------- */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,11,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--hair)}
+.nav-in{display:flex;align-items:center;gap:18px;height:60px;max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.brand .swoosh{width:30px;height:30px;flex:0 0 auto}
+.brand .tk{color:var(--muted);font-weight:600;font-size:.82rem;border:1px solid var(--hair2);padding:2px 7px;border-radius:6px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{color:var(--ink2);font-size:.82rem;font-weight:600;padding:7px 10px;border-radius:8px;white-space:nowrap;transition:.15s}
+.nav-links a:hover{color:var(--ink);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:rgba(255,107,44,.10)}
+
+/* ---------- HERO ---------- */
+.hero{padding:56px 0 30px;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--accent);display:inline-block}
+.hero h1{font-size:clamp(2.1rem,5vw,3.5rem);font-weight:820;letter-spacing:-.03em}
+.hero h1 .grad{background:linear-gradient(92deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{max-width:760px;color:var(--ink2);font-size:1.08rem;margin-top:16px}
+.hero .lede b{color:var(--ink)}
+.central-q{margin-top:22px;background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--hair2);border-left:3px solid var(--accent);border-radius:var(--radius-sm);padding:16px 18px;max-width:820px}
+.central-q .lab{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.central-q p{margin-top:6px;font-size:1.02rem;color:var(--ink)}
+
+/* ---------- KPI ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:30px}
+.kpi{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-sm);padding:15px 15px 13px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent);opacity:.7}
+.kpi .v{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+.kpi .l{font-size:.72rem;color:var(--muted);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.kpi .s{font-size:.74rem;color:var(--ink2);margin-top:4px}
+.kpi.up .v{color:#fff}.kpi .chg{font-weight:700}
+.chg.pos{color:var(--bull)}.chg.neg{color:var(--bear)}
+
+/* TradingView */
+.tv-wrap{margin-top:26px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);padding:8px;height:430px}
+.tradingview-widget-container,.tradingview-widget-container__widget{height:100%!important;width:100%!important}
+.tv-note{font-size:.74rem;color:var(--muted);margin-top:8px;text-align:center}
+
+/* ---------- SECTION ---------- */
+section{padding:52px 0;border-top:1px solid var(--hair);scroll-margin-top:70px}
+.sec-head{margin-bottom:26px}
+.sec-num{font-size:.74rem;font-weight:800;color:var(--accent);letter-spacing:.16em}
+.sec-head h2{font-size:clamp(1.5rem,3vw,2.05rem);margin-top:6px}
+.sec-head .sub{color:var(--ink2);max-width:820px;margin-top:10px;font-size:1rem}
+.eli{background:linear-gradient(180deg,rgba(63,142,240,.08),transparent);border:1px solid rgba(63,142,240,.22);border-radius:var(--radius-sm);padding:14px 16px;margin:18px 0;font-size:.95rem;color:var(--ink2)}
+.eli b{color:#cfe0fb}
+.eli .tag{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-right:8px;border:1px solid rgba(63,142,240,.35);padding:1px 7px;border-radius:5px}
+
+/* cards / grid */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);padding:20px}
+.card h3{font-size:1.05rem;margin-bottom:4px}
+.card .ch-sub{font-size:.8rem;color:var(--muted);margin-bottom:14px}
+.card.tall{min-height:100%}
+.chart-box{position:relative;height:300px}
+.chart-box.sm{height:240px}
+.chart-box.lg{height:360px}
+.src{font-size:.7rem;color:var(--muted);margin-top:10px;font-style:italic}
+.pill{display:inline-block;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--hair2);color:var(--ink2)}
+.pill.o{color:var(--bull);border-color:rgba(38,194,129,.4);background:rgba(38,194,129,.08)}
+.pill.n{color:var(--yellow);border-color:rgba(224,165,43,.4);background:rgba(224,165,43,.08)}
+.pill.b{color:var(--bear);border-color:rgba(239,83,80,.4);background:rgba(239,83,80,.08)}
+
+/* flow diagram */
+.flow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.flow .node{flex:1 1 150px;background:var(--surface2);border:1px solid var(--hair2);border-radius:12px;padding:14px;position:relative;min-width:150px}
+.flow .node .n-t{font-weight:750;font-size:.92rem;display:flex;align-items:center;gap:8px}
+.flow .node .n-d{font-size:.8rem;color:var(--ink2);margin-top:6px}
+.flow .arrow{display:flex;align-items:center;color:var(--accent);font-size:1.4rem;font-weight:800}
+.icon{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem;background:rgba(255,107,44,.14);color:var(--accent);flex:0 0 auto}
+
+/* stat row inside cards */
+.statrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stat{flex:1 1 120px;background:var(--surface2);border:1px solid var(--hair);border-radius:10px;padding:11px 12px}
+.stat .sv{font-size:1.25rem;font-weight:800}
+.stat .sl{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+/* jargon tooltip */
+.j{border-bottom:1px dotted var(--accent);cursor:help;position:relative;color:var(--ink)}
+.j .jt{visibility:hidden;opacity:0;position:absolute;bottom:135%;left:50%;transform:translateX(-50%);width:250px;background:#000;border:1px solid var(--hair2);border-radius:9px;padding:10px 12px;font-size:.8rem;color:var(--ink2);z-index:40;transition:.15s;box-shadow:var(--shadow);font-weight:400;line-height:1.4;text-align:left}
+.j:hover .jt{visibility:visible;opacity:1}
+.j .jt::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#000}
+
+/* timeline */
+.tl{position:relative;padding-left:26px;margin-top:6px}
+.tl::before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--hair2)}
+.tl .ev{position:relative;padding:0 0 20px 12px}
+.tl .ev::before{content:"";position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+.tl .ev.done::before{background:var(--bull)}
+.tl .ev.next::before{background:var(--accent2);box-shadow:0 0 0 4px rgba(244,180,0,.18)}
+.tl .ev .d{font-size:.74rem;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.tl .ev .t{font-weight:700;font-size:.95rem;margin-top:1px}
+.tl .ev .x{font-size:.85rem;color:var(--ink2)}
+
+/* two-col working */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.list-check li,.list-x li{list-style:none;padding:8px 0 8px 26px;position:relative;font-size:.9rem;color:var(--ink2);border-bottom:1px solid var(--hair)}
+.list-check li::before{content:"✓";position:absolute;left:0;top:7px;color:var(--bull);font-weight:800}
+.list-x li::before{content:"✕";position:absolute;left:0;top:7px;color:var(--bear);font-weight:800}
+.list-check li b,.list-x li b{color:var(--ink)}
+
+/* maps */
+.map-box{height:460px;background:var(--bg2);border:1px solid var(--hair);border-radius:var(--radius);position:relative;overflow:hidden}
+.jvm-tooltip{background:#000!important;border:1px solid var(--hair2)!important;border-radius:8px!important;font-family:inherit!important;font-size:.8rem!important;padding:8px 11px!important;box-shadow:var(--shadow)!important;color:var(--ink)!important}
+.map-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--ink2)}
+.map-legend .lg{display:flex;align-items:center;gap:7px}
+.map-legend .dot{width:12px;height:12px;border-radius:3px}
+
+/* segment cards */
+.seg{background:var(--surface2);border:1px solid var(--hair);border-radius:12px;padding:15px;border-top:3px solid var(--seg,#666)}
+.seg .sn{font-weight:750;font-size:.98rem;display:flex;justify-content:space-between;align-items:center}
+.seg .sr{font-size:1.55rem;font-weight:820;margin-top:6px}
+.seg .sm2{font-size:.8rem;color:var(--ink2);margin-top:3px}
+.seg .sg{font-size:.78rem;font-weight:700;margin-top:6px}
+
+/* broker table */
+table.tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+table.tbl th,table.tbl td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--hair)}
+table.tbl th:first-child,table.tbl td:first-child{text-align:left}
+table.tbl thead th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+table.tbl tbody tr:hover{background:var(--surface2)}
+table.tbl td b{color:var(--ink)}
+
+/* PT range bar */
+.ptbar{position:relative;height:64px;margin:26px 0 10px}
+.ptbar .track{position:absolute;top:30px;left:0;right:0;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--bear),var(--yellow),var(--bull))}
+.ptbar .mk{position:absolute;top:16px;transform:translateX(-50%);text-align:center}
+.ptbar .mk .dot{width:12px;height:12px;border-radius:50%;background:#fff;margin:0 auto;border:2px solid var(--bg)}
+.ptbar .mk .lbl{font-size:.68rem;color:var(--ink2);margin-top:3px;white-space:nowrap;font-weight:600}
+.ptbar .mk .val{font-size:.78rem;font-weight:800}
+.ptbar .cur{position:absolute;bottom:-2px;transform:translateX(-50%);text-align:center}
+.ptbar .cur .bar{width:2px;height:40px;background:var(--accent);margin:0 auto}
+.ptbar .cur .t{font-size:.72rem;color:var(--accent);font-weight:800;white-space:nowrap}
+
+/* bull bear */
+.bb-toggle{display:inline-flex;background:var(--surface2);border:1px solid var(--hair2);border-radius:30px;padding:4px;gap:4px;margin-bottom:20px}
+.bb-toggle button{border:0;background:transparent;color:var(--ink2);font-weight:700;font-size:.86rem;padding:8px 20px;border-radius:24px;cursor:pointer;transition:.18s}
+.bb-toggle button.act[data-v="bull"]{background:rgba(38,194,129,.16);color:var(--bull)}
+.bb-toggle button.act[data-v="bear"]{background:rgba(239,83,80,.16);color:var(--bear)}
+.bb-toggle button.act[data-v="both"]{background:var(--surface3);color:var(--ink)}
+.bb-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bb-col h3{display:flex;align-items:center;gap:9px;font-size:1.1rem;margin-bottom:12px}
+.bb-col.bull h3{color:var(--bull)}.bb-col.bear h3{color:var(--bear)}
+.bb-item{background:var(--surface);border:1px solid var(--hair);border-radius:11px;padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--c)}
+.bb-item .h{font-weight:700;font-size:.92rem}
+.bb-item .x{font-size:.83rem;color:var(--ink2);margin-top:4px}
+.bb-item .src2{font-size:.7rem;color:var(--muted);margin-top:6px;font-style:italic}
+
+/* risks */
+.risk{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:16px;border-top:3px solid var(--rc)}
+.risk .rt{font-weight:750;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.risk .sev{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px}
+.risk .rx{font-size:.85rem;color:var(--ink2);margin-top:8px}
+.risk .watch{font-size:.78rem;color:var(--muted);margin-top:10px;border-top:1px solid var(--hair);padding-top:8px}
+.risk .watch b{color:var(--accent2)}
+
+/* watch */
+.kpiw{background:var(--surface2);border:1px solid var(--hair);border-radius:11px;padding:14px}
+.kpiw .m{font-weight:750;font-size:.92rem}
+.kpiw .t{font-size:.82rem;color:var(--ink2);margin-top:4px}
+.kpiw .g{font-size:.74rem;margin-top:8px;color:var(--accent2);font-weight:700}
+
+/* footer */
+footer{border-top:1px solid var(--hair);padding:34px 0 60px;color:var(--muted);font-size:.82rem}
+footer .src-strip{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+footer .src-strip span{border:1px solid var(--hair2);border-radius:6px;padding:4px 9px;color:var(--ink2);font-size:.76rem}
+.disc{background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:14px 16px;font-size:.78rem;color:var(--muted);margin-top:16px}
+
+.reveal{opacity:0;transform:translateY(18px);transition:.6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:960px){
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .g3,.g4{grid-template-columns:repeat(2,1fr)}
+  .two,.bb-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .flow .arrow{transform:rotate(90deg)}
+  .hero{padding:34px 0 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-in">
+    <div class="brand">
+      <svg class="swoosh" viewBox="0 0 100 40" fill="var(--accent)"><path d="M2 27C13 33 25 34 40 27 55 20 78 8 98 3 92 0 84 1 74 5 60 11 44 20 30 24 22 26 14 26 6 22 4 24 3 25 2 27Z"/></svg>
+      <span>NIKE</span><span class="tk">NYSE: NKE</span>
+    </div>
+    <div class="nav-links" id="navlinks">
+      <a href="#primer">Primer</a>
+      <a href="#business">Business Model</a>
+      <a href="#turnaround">Turnaround</a>
+      <a href="#geography">Geography</a>
+      <a href="#supply">Supply & Tariffs</a>
+      <a href="#drivers">Drivers</a>
+      <a href="#moat">Moat</a>
+      <a href="#financials">Financials</a>
+      <a href="#valuation">Valuation</a>
+      <a href="#bullbear">Bull vs Bear</a>
+      <a href="#risks">Risks</a>
+      <a href="#watch">What to Watch</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO / PRIMER -->
+<header class="hero" id="primer">
+  <div class="wrap">
+    <div class="eyebrow">First-Principles Research Dashboard · FY2026 Post-Earnings</div>
+    <h1>Nike, Inc. — the world's #1 sportswear brand,<br><span class="grad">mid-turnaround.</span></h1>
+    <p class="lede">Nike designs and markets athletic footwear and apparel — it makes almost none of it itself. After a self-inflicted slump, founder-era veteran <b>Elliott Hill</b> returned as CEO to fix the brand. Fiscal 2026 (year ended May 2026) was the trough: revenue flat at <b>$46.4B</b>, earnings cut nearly in half from the peak. The debate now is whether the recovery is real — and how much is already in the price.</p>
+
+    <div class="central-q">
+      <span class="lab">The Central Question</span>
+      <p>Is Nike a <b>great brand on temporary sale</b> — margins inflecting before revenue, with the strongest franchise in sport intact — or a <b>structurally impaired</b> business losing share, pricing power and China, with a multi-year grind ahead? Sell-side price targets span <b>$42 to $75</b> on a ~$41 stock. This dashboard builds the case both ways, from the ground up.</p>
+    </div>
+
+    <div class="kpi-grid" id="kpis">
+      <div class="kpi up"><div class="v"><span data-count="46.4" data-dec="1" data-pre="$" data-suf="B"></span></div><div class="l">FY26 Revenue</div><div class="s"><span class="chg pos">+0.2%</span> y/y · flat</div></div>
+      <div class="kpi"><div class="v"><span data-count="2.10" data-dec="2" data-pre="$"></span></div><div class="l">FY26 EPS (reported)</div><div class="s">$1.58 ex tariff refund</div></div>
+      <div class="kpi"><div class="v"><span data-count="42.9" data-dec="1" data-suf="%"></span></div><div class="l">FY26 Gross Margin</div><div class="s">40.8% ex refund</div></div>
+      <div class="kpi"><div class="v"><span data-count="8.2" data-dec="1" data-suf="%"></span></div><div class="l">FY26 EBIT Margin</div><div class="s">vs 12.3% in FY24</div></div>
+      <div class="kpi"><div class="v"><span data-count="61" data-dec="0" data-pre="$" data-suf="B"></span></div><div class="l">Market Cap</div><div class="s">EV ~$60B</div></div>
+      <div class="kpi"><div class="v"><span data-count="41.05" data-dec="2" data-pre="$"></span></div><div class="l">Share Price</div><div class="s"><span class="chg neg">−42%</span> 12-mo</div></div>
+    </div>
+
+    <div class="tv-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {
+          "symbols": [["NIKE","NYSE:NKE|12M"]],
+          "chartOnly": false,
+          "width": "100%",
+          "height": "100%",
+          "locale": "en",
+          "colorTheme": "dark",
+          "autosize": true,
+          "showVolume": true,
+          "showMA": false,
+          "hideDateRanges": false,
+          "scalePosition": "right",
+          "scaleMode": "Normal",
+          "fontFamily": "-apple-system, system-ui, sans-serif",
+          "fontSize": "10",
+          "chartType": "area",
+          "lineColor": "#ff6b2c",
+          "topColor": "rgba(255,107,44,0.25)",
+          "bottomColor": "rgba(255,107,44,0.0)",
+          "backgroundColor": "rgba(22,22,26,1)",
+          "gridLineColor": "rgba(43,43,49,1)"
+        }
+        </script>
+      </div>
+    </div>
+    <div class="tv-note">Live price via TradingView. Fundamental figures below are as of the F4Q26 print (June 30, 2026) and reflect UBS / Goldman Sachs / Bernstein research.</div>
+  </div>
+</header>
+
+<!-- 2. BUSINESS MODEL -->
+<section id="business">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">01 — HOW NIKE WORKS</div>
+      <h2>The business model, from first principles</h2>
+      <p class="sub">Nike is not a factory. It is a <b>brand and a design house</b> that rents the world's manufacturing capacity, then sells the output two ways — through other stores (wholesale) and its own channels (direct). Understanding that split is the key to the whole story.</p>
+    </div>
+
+    <div class="eli reveal"><span class="tag">Explain like I know nothing</span> A sportswear company earns money on the <b>gap between what a shoe costs to make and what someone pays for it</b>. Nike widens that gap two ways: (1) <b>brand</b> — spending billions on athletes, teams and marketing (called <span class="j">demand creation<span class="jt">Nike's term for its advertising & sponsorship budget — the money spent to create demand for product (~$4.8B in FY26, ~10% of sales).</span></span>) so people pay full price; and (2) <b>channel</b> — selling directly to you (a Nike store or the app) keeps the retailer's cut. It designs the product, hands specs to independent factories in Asia, then ships to two types of buyer.</p></div>
+
+    <div class="card reveal" style="margin-bottom:16px">
+      <h3>How a dollar of Nike revenue is created</h3>
+      <div class="ch-sub">The value chain — design and marketing are owned; manufacturing is rented</div>
+      <div class="flow">
+        <div class="node"><div class="n-t"><span class="icon">✎</span>Design & Innovation</div><div class="n-d">R&D, the "Air"/Vaporfly tech, athlete input. Done in Beaverton, Oregon.</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-t"><span class="icon">🏭</span>Contract Manufacturing</div><div class="n-d">Independent factories in Vietnam, Indonesia, China make the goods. Nike owns ~none.</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-t"><span class="icon">🚚</span>Two Channels</div><div class="n-d"><b>Wholesale</b> → Foot Locker, Dick's, JD. <b>Direct (DTC)</b> → Nike stores, Nike.com, SNKRS app.</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-t"><span class="icon">📣</span>Brand Pull</div><div class="n-d">$4.8B/yr of marketing makes the consumer ask for it by name — the real moat.</div></div>
+      </div>
+    </div>
+
+    <div class="grid g3 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Brand portfolio</h3>
+        <div class="ch-sub">Three brands; Nike Brand is ~97% of sales</div>
+        <div class="chart-box sm"><canvas id="c-brands"></canvas></div>
+        <div class="src">Nike Brand $45.2B, Converse $1.2B (FY26). Jordan ~$7.3B sits <i>inside</i> Nike Brand (FY25). Source: GS / Bernstein models.</div>
+      </div>
+      <div class="card">
+        <h3>Product mix</h3>
+        <div class="ch-sub">Footwear is the engine (~65% of Nike Brand)</div>
+        <div class="chart-box sm"><canvas id="c-product"></canvas></div>
+        <div class="src">Nike Brand FY26: Footwear $29.5B, Apparel $13.4B, Equipment $2.2B. Source: Bernstein / UBS models.</div>
+      </div>
+      <div class="card">
+        <h3>The DTC ⇄ Wholesale debate</h3>
+        <div class="ch-sub">The core strategic pendulum</div>
+        <div class="chart-box sm"><canvas id="c-channel"></canvas></div>
+        <div class="src">Nike Brand channel $m. Direct fell from 44% to 39% of Nike Brand FY24→FY26 as Nike re-embraced wholesale. Source: GS model.</div>
+      </div>
+    </div>
+
+    <div class="two reveal">
+      <div class="card">
+        <h3>Why the channel mix is <span style="color:var(--accent)">the</span> debate</h3>
+        <p style="font-size:.92rem;color:var(--ink2);margin-top:8px">Under the prior CEO, Nike bet the company on <b>going direct</b> — pulling product from wholesalers to sell it itself at full margin via Nike.com and the <span class="j">SNKRS<span class="jt">Nike's sneaker-launch app for hyped/limited releases — a pillar of its digital DTC strategy.</span></span> app. It backfired: shelves at Foot Locker and Dick's emptied, competitors filled the gap, and Nike's own digital sales became discount-driven. Hill's fix is to <b>rebuild wholesale</b> — accepting a lower gross margin per unit in exchange for reach, brand presence and healthier full-price selling.</p>
+        <div class="statrow">
+          <div class="stat"><div class="sv tnum">−9%</div><div class="sl">Nike Direct, F4Q26 (cc)<br>Digital −12%, stores −7%</div></div>
+          <div class="stat"><div class="sv tnum">+10%</div><div class="sl">N. America Wholesale<br>F4Q26 y/y</div></div>
+          <div class="stat"><div class="sv tnum">1st in 4y</div><div class="sl">Foot Locker positive<br>sell-in & sell-through</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>The jargon that runs the story</h3>
+        <ul style="list-style:none;margin-top:8px;font-size:.9rem">
+          <li style="padding:8px 0;border-bottom:1px solid var(--hair)"><b>Sell-in vs sell-through</b> — <span style="color:var(--ink2)">Sell-in = Nike shipping to a retailer. Sell-through = the retailer selling to you. When sell-in outruns sell-through, inventory piles up and discounts follow — Nike's problem for two years.</span></li>
+          <li style="padding:8px 0;border-bottom:1px solid var(--hair)"><b>Franchise management</b> — <span style="color:var(--ink2)">Controlling supply of iconic shoes (Air Force 1, Dunk) so they stay scarce and desirable, rather than flooding the market.</span></li>
+          <li style="padding:8px 0;border-bottom:1px solid var(--hair)"><b>ASP & markdowns</b> — <span style="color:var(--ink2)">Average selling price; markdowns are discounts. Full-price selling is the health signal.</span></li>
+          <li style="padding:8px 0"><b>Lifestyle vs Performance</b> — <span style="color:var(--ink2)">"Lifestyle/Sportswear" = fashion sneakers you wear on the street (~58% of Nike Brand). "Performance" = actual running/basketball/football gear. The turnaround is a deliberate tilt back toward performance.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. TURNAROUND -->
+<section id="turnaround">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">02 — THE TURNAROUND</div>
+      <h2>"Win Now" → "Sport Offense": resetting a brand on purpose</h2>
+      <p class="sub">Nike is <b>deliberately shrinking today to grow tomorrow</b>. It is choking off the over-supplied classic sneakers that were quietly cannibalising the brand, rebuilding retail relationships, and re-centering on sport. Management calls it "quality over quantity" — which means two more quarters of falling sales before growth returns.</p>
+    </div>
+
+    <div class="eli reveal"><span class="tag">The core idea</span> Nike got hooked on three retro shoes — the <b>Air Force 1, Dunk, and Air Jordan 1</b>. They were cheap to make and sold themselves, so Nike pumped out more and more. Eventually they were everywhere, discounted, and no longer cool. Hill's team is intentionally pulling <b>~$2 billion</b> of these out of the market (a ~4-point drag on FY26 sales) to make them scarce again — while launching fresh performance product to fill the hole.</p></div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>The classics reset — pain now, health later</h3>
+        <div class="ch-sub">Franchise "cleanup" drag on total revenue growth</div>
+        <div class="chart-box"><canvas id="c-classics"></canvas></div>
+        <div class="src">Classics (AF1 / AJ1 / Dunk) drove ~$2B revenue decline (~4ppt headwind) in FY26, narrowing to ~2ppt in FY27. Source: Bernstein Retail Forum.</div>
+      </div>
+      <div class="card">
+        <h3>FY27 sales bridge — Performance offsets Lifestyle</h3>
+        <div class="ch-sub">How Nike gets to ~flat revenue in FY27 ($ billions)</div>
+        <div class="chart-box"><canvas id="c-bridge"></canvas></div>
+        <div class="src">Lifestyle FW −$1.0B & Apparel −$0.1B, offset by Performance FW +$0.9B & Apparel +$0.3B. Source: Bernstein FY27 category bridge.</div>
+      </div>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Strategy timeline & catalysts</h3>
+        <div class="tl" style="margin-top:14px">
+          <div class="ev done"><div class="d">OCT 2024</div><div class="t">Elliott Hill returns as CEO</div><div class="x">32-year Nike veteran; came out of retirement to run the reset.</div></div>
+          <div class="ev done"><div class="d">SEP 2025</div><div class="t">"Sport Offense" launched</div><div class="x">Reorganised around sport (running, basketball, football) with decentralised regional teams — replacing the men's/women's/kids' structure.</div></div>
+          <div class="ev done"><div class="d">JUN 30 2026</div><div class="t">F4Q26 print — margins inflect early</div><div class="x">Gross-margin recovery pulled forward a quarter to Q1 FY27; H1 EPS guide held (not cut).</div></div>
+          <div class="ev next"><div class="d">AUG 17 2026</div><div class="t">New CFO Dave Denton starts</div><div class="x">Ex-Pfizer / Lowe's / CVS. Pay is tied to FY27 operating-margin expansion.</div></div>
+          <div class="ev next"><div class="d">NOV 16–17 2026</div><div class="t">Investor Day — the big catalyst</div><div class="x">First mid-term growth & margin framework; Spring-2027 product showcase. Maintained despite the CFO change.</div></div>
+          <div class="ev"><div class="d">SPRING 2027</div><div class="t">First full "Sport Offense" product cycle</div><div class="x">&gt;a dozen new Sportswear silhouettes; "Win Now" sunsets end-CY26.</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="two" style="grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <h3 style="color:var(--bull);font-size:1rem">What's working</h3>
+            <ul class="list-check">
+              <li><b>Running</b> — 5 straight quarters of double-digit growth, +5 pts share; Vomero 18 hit $100M.</li>
+              <li><b>N. America wholesale</b> — +10%; Foot Locker healthy for first time in 4 years.</li>
+              <li><b>Margins</b> — underlying gross margin held ~flat (40.2%) despite tariffs; inflection pulled forward.</li>
+              <li><b>Cost discipline</b> — overhead dollars down ~3.5%; EPS guide held.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="color:var(--bear);font-size:1rem">What isn't — yet</h3>
+            <ul class="list-x">
+              <li><b>Lifestyle/Jordan</b> — ~50% of revenue, still declining through all of FY27.</li>
+              <li><b>Greater China</b> — −17% (cc); no bottom called.</li>
+              <li><b>Nike Direct</b> — digital −12%; DTC still shrinking.</li>
+              <li><b>Consumer</b> — trends decelerated in May on soft discretionary spend.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal" style="border-left:3px solid var(--accent2)">
+      <h3>CFO transition: why an outsider matters</h3>
+      <p style="font-size:.92rem;color:var(--ink2);margin-top:8px">Long-time CFO <b>Matt Friend</b> hands over to <b>Dave Denton</b> (ex-CFO of Pfizer, Lowe's and CVS) on Aug 17, 2026. Nike's 8-K is explicit that the exit was <b>not</b> due to any disagreement. The signal is twofold: (1) hiring an <b>external, large-cap operator</b> breaks Nike's insider tradition and prioritises capital discipline as it pivots from turnaround to growth; and (2) Denton's <b>$4.0M performance award cliff-vests Dec 2027 purely on FY27 operating-margin expansion</b> — his incentives are bolted to the margin-recovery thesis. His Tapestry board seat during Coach's turnaround is the relevant analogue.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. GEOGRAPHY -->
+<section id="geography">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">03 — WHERE NIKE SELLS</div>
+      <h2>Geographic footprint & the China swing factor</h2>
+      <p class="sub">Nike reports four regions. <b>North America</b> is nearly half of sales and now growing again; <b>Greater China</b> is the smallest of the big three but the swing factor — historically its highest-margin "insurance policy," now in structural decline.</p>
+    </div>
+
+    <div class="card reveal" style="margin-bottom:16px">
+      <h3>Interactive revenue map — hover any market</h3>
+      <div class="ch-sub">Countries coloured by Nike's reporting segment. Circles on the four regional hubs are sized by FY26 revenue.</div>
+      <div class="map-box" id="geo-map"></div>
+      <div class="map-legend">
+        <div class="lg"><span class="dot" style="background:var(--blue)"></span> North America — $20.5B (+5% cc)</div>
+        <div class="lg"><span class="dot" style="background:var(--aqua)"></span> EMEA — $12.6B (−3% cc)</div>
+        <div class="lg"><span class="dot" style="background:var(--red)"></span> Greater China — $5.8B (−13% cc)</div>
+        <div class="lg"><span class="dot" style="background:var(--yellow)"></span> APLA (Asia Pac. & Latin America) — $6.2B (+2% cc)</div>
+      </div>
+    </div>
+
+    <div class="grid g4 reveal" style="margin-bottom:16px">
+      <div class="seg" style="--seg:var(--blue)"><div class="sn">North America <span class="pill">44% of sales</span></div><div class="sr tnum">$20.5B</div><div class="sm2">Segment EBIT margin 26.2%</div><div class="sg" style="color:var(--bull)">▲ +5% cc — turnaround leader</div></div>
+      <div class="seg" style="--seg:var(--aqua)"><div class="sn">EMEA <span class="pill">27%</span></div><div class="sr tnum">$12.6B</div><div class="sm2">Segment EBIT margin 19.2%</div><div class="sg" style="color:var(--bear)">▼ −3% cc — losing share to Adidas/Puma</div></div>
+      <div class="seg" style="--seg:var(--red)"><div class="sn">Greater China <span class="pill">13%</span></div><div class="sr tnum">$5.8B</div><div class="sm2">Segment EBIT margin 21.9%</div><div class="sg" style="color:var(--bear)">▼ −13% cc — structural reset</div></div>
+      <div class="seg" style="--seg:var(--yellow)"><div class="sn">APLA <span class="pill">13%</span></div><div class="sr tnum">$6.2B</div><div class="sm2">Segment EBIT margin 22.2%</div><div class="sg" style="color:var(--bull)">▲ +2% cc — solid Latam</div></div>
+    </div>
+
+    <div class="eli reveal"><span class="tag">Read this</span> Those 20%+ segment margins look far higher than Nike's ~8% company margin. That's because segment EBIT is measured <b>before</b> ~$7B of shared "Global Brand" and Corporate costs (central marketing, R&D, overhead). The regions are the profit engines; the corporate line is where the heavy shared cost sits.</p></div>
+
+    <div class="grid g2 reveal">
+      <div class="card">
+        <h3>Regional revenue trajectory</h3>
+        <div class="ch-sub">$ billions, FY22–FY29E (dashed = estimate). China is the only region below its FY22 level.</div>
+        <div class="chart-box"><canvas id="c-region"></canvas></div>
+        <div class="src">Source: Bernstein model (FY27–29E estimates).</div>
+      </div>
+      <div class="card">
+        <h3>China deep-dive — the "insurance policy" is gone</h3>
+        <div class="ch-sub">Pou Sheng (Nike/Adidas' biggest China retailer, ~80% of its sales) monthly retail sales, y/y %</div>
+        <div class="chart-box"><canvas id="c-pousheng"></canvas></div>
+        <div class="src">June −8.6% y/y; worst 2-yr stack since June '25. 6th straight year of June declines. Source: Bernstein / Pou Sheng.</div>
+      </div>
+    </div>
+
+    <div class="card reveal" style="margin-top:16px">
+      <h3>Why China went from moat to millstone</h3>
+      <div class="grid g3" style="margin-top:6px">
+        <div><b style="color:var(--accent)">Domestic share loss</b><p style="font-size:.86rem;color:var(--ink2);margin-top:4px">Local champions <b>Anta and Li-Ning</b> — vertically integrated and faster to market — plus Western niche brands (On, Arc'teryx, Salomon) are taking share. Nationalist sentiment favours home brands.</p></div>
+        <div><b style="color:var(--accent)">Deliberate reset</b><p style="font-size:.86rem;color:var(--ink2);margin-top:4px">Nike is intentionally cutting low-quality, promo-led sell-in, exiting the 6.18/11.11 discount events, and refusing to match local price points — sacrificing revenue for marketplace health.</p></div>
+        <div><b style="color:var(--accent)">Green shoots</b><p style="font-size:.86rem;color:var(--ink2);margin-top:4px">100+ remodeled doors (of ~5,000) show positive traffic and comps; a local product-creation leader and coverage across ~20 cities. Sell-out positive, but sell-in still negative.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. SUPPLY & TARIFFS -->
+<section id="supply">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">04 — SUPPLY CHAIN & TARIFFS</div>
+      <h2>Where it's actually made — and why tariffs matter</h2>
+      <p class="sub">Nike owns virtually <b>no factories</b>. Independent contractors in a handful of Asian countries make everything, then ship it — increasingly into the United States, where import tariffs land directly on gross margin.</p>
+    </div>
+
+    <div class="eli reveal"><span class="tag">Explain like I know nothing</span> When a shoe made in Vietnam is imported into the US, the importer (Nike) pays a <b>tariff</b> — a tax that's a % of the shoe's cost. Nike sources ~<b>half its footwear from Vietnam</b> and most apparel there too, so a jump in US tariffs is a direct hit to profit. In FY26 a <b>one-time $986M refund</b> of previously-paid tariffs flattered the numbers; in FY27 tariffs flip back to a ~220bps headwind that Nike must offset with pricing and cost cuts.</p></div>
+
+    <div class="card reveal" style="margin-bottom:16px">
+      <h3>Interactive sourcing map — hover a manufacturing hub</h3>
+      <div class="ch-sub">Circle size = share of Nike Brand production. Footwear is highly concentrated in just three countries.</div>
+      <div class="map-box" id="supply-map"></div>
+      <div class="map-legend">
+        <div class="lg"><span class="dot" style="background:var(--orange)"></span> Footwear hub</div>
+        <div class="lg"><span class="dot" style="background:var(--violet)"></span> Apparel hub</div>
+        <div class="lg" style="color:var(--muted)">97 footwear factories (11 countries) · 303 apparel factories (34 countries)</div>
+      </div>
+    </div>
+
+    <div class="grid g3 reveal">
+      <div class="card">
+        <h3>Footwear sourcing</h3>
+        <div class="ch-sub">% of Nike Brand footwear, FY25</div>
+        <div class="chart-box sm"><canvas id="c-fw"></canvas></div>
+        <div class="src">Vietnam 51% · Indonesia 28% · China 17%. Source: Nike FY2025 10-K.</div>
+      </div>
+      <div class="card">
+        <h3>Apparel sourcing</h3>
+        <div class="ch-sub">% of Nike Brand apparel, FY25</div>
+        <div class="chart-box sm"><canvas id="c-ap"></canvas></div>
+        <div class="src">Vietnam 31% · China 15% · Cambodia 15%. Source: Nike FY2025 10-K.</div>
+      </div>
+      <div class="card">
+        <h3>The tariff swing</h3>
+        <div class="ch-sub">A one-off help in FY26, a headwind in FY27</div>
+        <div class="statrow" style="flex-direction:column">
+          <div class="stat" style="border-left:3px solid var(--bull)"><div class="sv tnum" style="color:var(--bull)">+$986M</div><div class="sl">FY26 one-time IEEPA tariff refund → +900bps to reported margin, +$0.52 EPS. Offset the entire year's tariff drag.</div></div>
+          <div class="stat" style="border-left:3px solid var(--bear)"><div class="sv tnum" style="color:var(--bear)">−220 bps</div><div class="sl">FY27 tariff headwind to operating margin, on a 10%→15% rate assumption. Nike plans to fully offset it.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal" style="margin-top:16px">
+      <h3>FY27 operating-margin bridge — how tariffs get absorbed</h3>
+      <div class="ch-sub">Nike guides to a flat ~8.3% operating margin despite the tariff hit ($ = bps of margin)</div>
+      <div class="chart-box lg"><canvas id="c-tariffbridge"></canvas></div>
+      <div class="src">Tariff −220bps offset by full-price selling +70, supply-chain/product cost +75, marketing +60, overhead +10. Source: Bernstein FY27 op-margin bridge.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. DRIVERS -->
+<section id="drivers">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">05 — REVENUE & COST DRIVERS</div>
+      <h2>What actually moves the P&L</h2>
+      <p class="sub">Revenue is <b>units × price</b>, tilted by channel, geography and category. Profit is what's left after product cost, tariffs, and two big buckets of overhead — <b>demand creation</b> (marketing) and <b>operating overhead</b>. Here's what has the most leverage.</p>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>The revenue drivers</h3>
+        <div class="ch-sub">What lifts or drags the top line</div>
+        <table class="tbl">
+          <thead><tr><th>Driver</th><th>Direction</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr><td><b>Channel mix</b></td><td><span class="pill n">Rebalancing</span></td><td style="text-align:left;color:var(--ink2)">Wholesale recovering, DTC shrinking — reach vs margin</td></tr>
+            <tr><td><b>Category tilt</b></td><td><span class="pill o">Tailwind</span></td><td style="text-align:left;color:var(--ink2)">Performance (Running/FB/BB) up; Lifestyle down</td></tr>
+            <tr><td><b>Geography</b></td><td><span class="pill n">Mixed</span></td><td style="text-align:left;color:var(--ink2)">NA + Latam up; China + EMEA down</td></tr>
+            <tr><td><b>ASP / full-price</b></td><td><span class="pill o">Improving</span></td><td style="text-align:left;color:var(--ink2)">Fewer markdowns lift realised price</td></tr>
+            <tr><td><b>Classics supply</b></td><td><span class="pill b">Drag</span></td><td style="text-align:left;color:var(--ink2)">Deliberate ~$2B pull-back on AF1/Dunk/AJ1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>The cost / margin drivers</h3>
+        <div class="ch-sub">Demand Creation vs Operating Overhead, $ billions</div>
+        <div class="chart-box"><canvas id="c-sga"></canvas></div>
+        <div class="src">Demand creation ~$4.8B (marketing/endorsements); operating overhead ~$11.4B (people, stores, logistics). Source: Bernstein / UBS models.</div>
+      </div>
+    </div>
+
+    <div class="grid g2 reveal">
+      <div class="card">
+        <h3>Gross-margin bridge — the quarterly swing factors</h3>
+        <div class="ch-sub">Basis points of gross-margin change, by driver (UBS)</div>
+        <div class="chart-box"><canvas id="c-gmdrivers"></canvas></div>
+        <div class="src">Product cost & DTC/markdowns are the swing factors; full-price ASP turning positive. Source: UBS GM bridge (F4Q26E).</div>
+      </div>
+      <div class="card">
+        <h3>Sensitivity — which levers matter most</h3>
+        <p style="font-size:.9rem;color:var(--ink2);margin-top:6px">Goldman's driver model flags the biggest levers to fair value:</p>
+        <div class="statrow" style="flex-direction:column;margin-top:10px">
+          <div class="stat"><div class="sv tnum" style="color:var(--accent)">~$1.84</div><div class="sl">Price-target impact per <b>100bps of North America margin</b> — the #1 operating lever</div></div>
+          <div class="stat"><div class="sv tnum" style="color:var(--accent)">China + Corp</div><div class="sl">The two biggest P&L swing factors after NA: China recovery and central "Global Brand"/Corporate cost</div></div>
+          <div class="stat"><div class="sv tnum" style="color:var(--accent)">10% margin</div><div class="sl">The whole bull case rests on getting operating margin from ~8% back toward the historical ~13% (double-digit medium-term)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. MOAT -->
+<section id="moat">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">06 — COMPETITIVE MOAT</div>
+      <h2>What protects Nike — and where the wall is cracking</h2>
+      <p class="sub">Nike's moat is <b>brand, scale, marketing firepower, athlete relationships and innovation</b>. All five are real. All five are under more pressure than at any point in a decade, as challenger brands take the premium high ground.</p>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>The competitive field is moving — fast</h3>
+        <div class="ch-sub">Latest reported quarterly revenue growth, constant currency (%)</div>
+        <div class="chart-box"><canvas id="c-compete"></canvas></div>
+        <div class="src">Nike total −4% cc (F4Q26). On +26%, Hoka +15%, Adidas +14% cc. Source: UBS competitor read-throughs.</div>
+      </div>
+      <div class="card">
+        <h3>Moat scorecard</h3>
+        <div class="ch-sub">Honest assessment from the research</div>
+        <table class="tbl">
+          <thead><tr><th>Pillar</th><th>Strength</th><th>Trend</th></tr></thead>
+          <tbody>
+            <tr><td><b>Brand equity</b></td><td>#1 globally</td><td><span class="pill n">Softening</span></td></tr>
+            <tr><td><b>Scale / distribution</b></td><td>Unmatched</td><td><span class="pill o">Intact</span></td></tr>
+            <tr><td><b>Marketing firepower</b></td><td>$4.8B/yr</td><td><span class="pill o">Intact</span></td></tr>
+            <tr><td><b>Athlete / league ties</b></td><td>Deep</td><td><span class="pill n">Basketball fading</span></td></tr>
+            <tr><td><b>Innovation / R&D</b></td><td>Running reborn</td><td><span class="pill o">Re-accelerating</span></td></tr>
+            <tr><td><b>Premium pricing</b></td><td>Jordan resale</td><td><span class="pill b">Ceded in running</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two reveal">
+      <div class="card">
+        <h3 style="color:var(--bear)">Where the moat is cracking</h3>
+        <ul class="list-x">
+          <li><b>Premium running:</b> On, Hoka, and a resurgent New Balance & Asics have taken the high-end; RBC says Nike "surrendered price leadership."</li>
+          <li><b>Retro/court lifestyle:</b> Adidas (Samba, Spezial, Gazelle) owns the trend Nike used to.</li>
+          <li><b>Premium women's:</b> Lululemon, Vuori, Alo are taking share Nike barely contests.</li>
+          <li><b>The "superpower":</b> UBS argues Nike is losing its "all things to all people" status as it drifts down-market (Kohl's, DSW, Academy, Amazon).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--bull)">Where it still wins</h3>
+        <ul class="list-check">
+          <li><b>Running comeback:</b> 5 straight quarters of double-digit growth, +5pts share; Vomero/Pegasus/Structure re-platformed.</li>
+          <li><b>Football & the World Cup:</b> Mercurial/Tiempo/Phantom all refreshed; AeroFIT kits selling 2.5× the 2022 pace (2026 World Cup is in North America).</li>
+          <li><b>Women's signature:</b> Sabrina, A'ja, and a Caitlin Clark signature launching Fall 2026.</li>
+          <li><b>Jordan resale premium:</b> still among the highest secondary-market values in sport.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="eli reveal" style="margin-top:16px"><span class="tag">Is the moat widening or narrowing?</span> Honest read from the research: <b>narrowing, but not breached.</b> Nike has clearly lost ground in premium running, lifestyle-retro and China, and its basketball-culture engine has cooled. But no rival has Nike's scale, marketing budget or breadth — and the running/innovation rebound shows the machine still works when pointed at sport. The bear case is that "loyal to trend, not brand" fashion customers have simply moved on; the bull case is that a re-focused Nike re-widens the moat from here.</p></div>
+  </div>
+</section>
+
+<!-- 8. FINANCIALS -->
+<section id="financials">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">07 — FINANCIALS</div>
+      <h2>The numbers: a clear trough, a contested recovery</h2>
+      <p class="sub">Nike's fiscal year ends <b>end of May</b> (FY26 = year ended May 2026). Revenue and earnings bottomed in FY25–FY26. Where the three brokers <b>agree on the past</b>, they <b>diverge sharply on the future</b> — and that gap is the entire investment debate.</p>
+    </div>
+
+    <div style="margin-bottom:8px" class="reveal">
+      <span style="font-size:.8rem;color:var(--muted);margin-right:10px">Forecast lens:</span>
+      <span class="bb-toggle" id="broker-toggle" style="margin-bottom:0">
+        <button class="act" data-b="all">All brokers</button>
+        <button data-b="gs">Goldman ($42)</button>
+        <button data-b="ubs">UBS ($50)</button>
+        <button data-b="bern">Bernstein ($72)</button>
+      </span>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Revenue — flat is the new up</h3>
+        <div class="ch-sub">$ billions. Solid = actual; markers = broker FY27–29E</div>
+        <div class="chart-box"><canvas id="c-rev"></canvas></div>
+        <div class="src">Peak $51.4B (FY24) → $46.3B (FY25) → $46.4B (FY26A). Recovery pace is the debate. Source: GS/UBS/Bernstein models.</div>
+      </div>
+      <div class="card">
+        <h3>EPS — the trough and the fork</h3>
+        <div class="ch-sub">Diluted EPS ($). FY26 reported $2.10 includes $0.52 tariff refund ($1.58 underlying)</div>
+        <div class="chart-box"><canvas id="c-eps"></canvas></div>
+        <div class="src">FY27E: Bernstein $2.10 vs UBS $1.55 / GS $1.64. FY29E: $2.98 vs $2.30 / $2.26. Source: broker models.</div>
+      </div>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Margins — the leading indicator</h3>
+        <div class="ch-sub">Gross margin & EBIT margin, % (reported)</div>
+        <div class="chart-box"><canvas id="c-margins"></canvas></div>
+        <div class="src">Gross margin trough ~40.8% underlying (FY26); EBIT margin 8% vs 12–15% historically. "Margins inflect before sales." Source: models.</div>
+      </div>
+      <div class="card">
+        <h3>Cash generation & inventory</h3>
+        <div class="ch-sub">Free cash flow ($B, bars) vs inventory ($B, line)</div>
+        <div class="chart-box"><canvas id="c-fcf"></canvas></div>
+        <div class="src">Inventory now clean (~$7.5B, flat). FCF dipped in FY26; Bernstein sees FCF yield rising 3.5%→8% by FY28. Source: models.</div>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <h3>Consensus vs the range — key model outputs</h3>
+      <div class="ch-sub">Fiscal year ending May. A = actual, E = estimate. Forecast columns show the three-broker spread.</div>
+      <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>$ / metric</th><th>FY24A</th><th>FY25A</th><th>FY26A</th><th>FY27E</th><th>FY28E</th><th>FY29E</th></tr></thead>
+        <tbody>
+          <tr><td><b>Revenue ($B)</b></td><td>51.4</td><td>46.3</td><td>46.4</td><td>45.1–46.4</td><td>46.3–48.2</td><td>47.5–50.0</td></tr>
+          <tr><td><b>Gross margin</b></td><td>44.6%</td><td>42.7%</td><td>42.9%</td><td>41.2–42.2%</td><td>41.5–43.1%</td><td>41.8–43.5%</td></tr>
+          <tr><td><b>EBIT margin</b></td><td>12.3%</td><td>8.0%</td><td>8.2%</td><td>6.5–8.1%</td><td>7.3–9.7%</td><td>7.9–10.3%</td></tr>
+          <tr><td><b>EPS ($)</b></td><td>3.73</td><td>2.16</td><td>2.10</td><td>1.55–2.10</td><td>1.95–2.67</td><td>2.26–2.98</td></tr>
+          <tr><td><b>FCF ($B)</b></td><td>6.6</td><td>3.3</td><td>~2.0</td><td>3.0–4.4</td><td>3.1–4.8</td><td>3.5–4.8</td></tr>
+          <tr><td><b>Dividend / share</b></td><td>1.45</td><td>1.57</td><td>1.63</td><td>1.70–1.81</td><td>1.75–1.95</td><td>1.82–2.11</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="src">Ranges span Goldman Sachs (low), UBS (mid) and Bernstein (high) estimates. Balance sheet: ~$9B cash, ~$8B debt, roughly net-cash; dividend yield ~4%.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. VALUATION -->
+<section id="valuation">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">08 — VALUATION</div>
+      <h2>What's priced in at ~$41?</h2>
+      <p class="sub">On trough earnings, Nike optically looks expensive (~20× FY26 EPS). The bull case is that you're paying ~16× a recovering FY27 and buying a normalisation to ~$2.70–3.00 EPS. The bear case is that ~20× a broken-model trough is <b>not</b> cheap. The Street can't agree — targets run from $42 to $75.</p>
+    </div>
+
+    <div class="card reveal" style="margin-bottom:16px">
+      <h3>The Street scorecard</h3>
+      <div class="ch-sub">Where the analysts stand after the F4Q26 print (current price ≈ $41)</div>
+      <div class="ptbar" id="ptbar"></div>
+      <div style="overflow-x:auto;margin-top:8px">
+      <table class="tbl">
+        <thead><tr><th>Broker</th><th>Rating</th><th>Target</th><th>Upside</th><th>Thesis in one line</th></tr></thead>
+        <tbody>
+          <tr><td><b>Jefferies</b></td><td><span class="pill o">Buy</span></td><td><b>$75</b></td><td class="chg pos">+83%</td><td style="text-align:left;color:var(--ink2)">"Buy the turn" — F4Q26 was the fundamental bottom</td></tr>
+          <tr><td><b>Bernstein</b></td><td><span class="pill o">Outperform</span></td><td><b>$72</b></td><td class="chg pos">+75%</td><td style="text-align:left;color:var(--ink2)">Margins inflect before sales; FY28 the first "normal" year</td></tr>
+          <tr><td><b>BTIG</b></td><td><span class="pill o">Buy</span></td><td><b>$55</b></td><td class="chg pos">+34%</td><td style="text-align:left;color:var(--ink2)">Hill fixing wholesale & positioning</td></tr>
+          <tr><td><b>UBS</b></td><td><span class="pill n">Neutral</span></td><td><b>$50</b></td><td class="chg pos">+22%</td><td style="text-align:left;color:var(--ink2)">Turnaround takes longer than the market expects</td></tr>
+          <tr><td><b>Evercore ISI</b></td><td><span class="pill n">In Line</span></td><td><b>$46</b></td><td class="chg pos">+12%</td><td style="text-align:left;color:var(--ink2)">Cost cuts stabilise EPS; revenue still pressured</td></tr>
+          <tr><td><b>RBC</b></td><td><span class="pill n">Sector Perform</span></td><td><b>$45</b></td><td class="chg pos">+10%</td><td style="text-align:left;color:var(--ink2)">Reset taking longer; structural China impairment</td></tr>
+          <tr><td><b>Piper Sandler</b></td><td><span class="pill n">Neutral</span></td><td><b>$45</b></td><td class="chg pos">+10%</td><td style="text-align:left;color:var(--ink2)">Recovery pushed to 2H FY27</td></tr>
+          <tr><td><b>Goldman Sachs</b></td><td><span class="pill n">Neutral</span></td><td><b>$42</b></td><td class="chg pos">+2%</td><td style="text-align:left;color:var(--ink2)">Recovery timeline elongates again; multiple cut to 12.5×</td></tr>
+          <tr><td><b>KeyBanc</b></td><td><span class="pill b">Sector Weight</span></td><td>n/a</td><td>—</td><td style="text-align:left;color:var(--ink2)">Valuation premium unwarranted (~23× vs ~16× peers)</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="src">Ratings distribution is at its lowest in a decade after recent downgrades (BTIG). Source: AlphaSense aggregated sell-side.</div>
+    </div>
+
+    <div class="grid g2 reveal" style="margin-bottom:16px">
+      <div class="card">
+        <h3>P/E vs peers — expensive on trough, cheap on recovery</h3>
+        <div class="ch-sub">Forward P/E (×): FY26E vs FY27E</div>
+        <div class="chart-box"><canvas id="c-peers"></canvas></div>
+        <div class="src">Nike 20.4× FY26 → 16.0× FY27. Deckers/Lululemon screen far cheaper; Nike carries a recovery premium. Source: Bernstein ticker table (Jul 2026).</div>
+      </div>
+      <div class="card">
+        <h3>Scenario framework — what each outcome is worth</h3>
+        <div class="ch-sub">UBS bull / base / bear, FY29E EPS × exit multiple</div>
+        <div class="chart-box"><canvas id="c-scenario"></canvas></div>
+        <div class="src">Bull $83 (24× $3.45) · Base $48–50 (21× $2.30) · Bear $14 (9× $1.50). Wide dispersion = deeply uncertain recovery. Source: UBS model.</div>
+      </div>
+    </div>
+
+    <div class="eli reveal"><span class="tag">What's priced in</span> A reverse-DCF says today's ~$41 price embeds roughly <b>low-to-mid-single-digit sales growth and only a slow drift up in margin</b> — i.e. the market is <b>not</b> betting on a full snap-back to a 13% margin. That's the crux: if you believe Nike normalises to ~$2.70–3.00 of EPS and a low-double-digit margin (Bernstein/Jefferies), the stock is materially undervalued. If you believe the model is structurally impaired at ~6–8% margin and ~$1.60–2.00 EPS (UBS/Evercore/Piper), it's roughly fair-to-expensive. The fulcrum variables: China, the FY27 gross-margin inflection, and whether Lifestyle re-accelerates in 2H FY27.</p></div>
+  </div>
+</section>
+
+<!-- 10. BULL vs BEAR -->
+<section id="bullbear">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">09 — BULL vs BEAR</div>
+      <h2>The debate, side by side</h2>
+      <p class="sub">Drawn directly from the aggregated sell-side debate. Toggle to isolate each side. The key: both sides agree on the <b>facts</b> — they disagree on whether the reset is a <b>turnaround</b> or a <b>slow structural decline</b>.</p>
+    </div>
+
+    <div class="reveal">
+      <div class="bb-toggle" id="bb-toggle">
+        <button data-v="both" class="act">Both</button>
+        <button data-v="bull">🐂 Bull only</button>
+        <button data-v="bear">🐻 Bear only</button>
+      </div>
+    </div>
+
+    <div class="bb-grid reveal">
+      <div class="bb-col bull" id="bull-col" style="--c:var(--bull)">
+        <h3>🐂 The Bull Case</h3>
+        <div class="bb-item"><div class="h">Margins are inflecting before sales</div><div class="x">Underlying gross margin held ~flat (40.2%) despite tariffs; the positive inflection was pulled forward a quarter to Q1 FY27. "Quality of sales" is improving ahead of revenue.</div><div class="src2">Guggenheim, Bernstein</div></div>
+        <div class="bb-item"><div class="h">Wholesale re-engagement is working</div><div class="x">N. America wholesale +10%, outperforming DTC by ~1,600bps; Foot Locker positive sell-in AND sell-through for the first time in four years.</div><div class="src2">D.A. Davidson, Oppenheimer</div></div>
+        <div class="bb-item"><div class="h">Product innovation is back</div><div class="x">Running +double-digits for 5 straight quarters (+5pts share); Vomero 18 hit $100M; Nike Mind sold out globally with &gt;2M sign-ups.</div><div class="src2">CFRA, Needham</div></div>
+        <div class="bb-item"><div class="h">Credible catalysts ahead</div><div class="x">World Cup (all 3 football boots refreshed, AeroFIT 2.5× the 2022 pace), women's signature (Caitlin Clark), and the Nov Investor Day.</div><div class="src2">Jefferies</div></div>
+        <div class="bb-item"><div class="h">Fortress balance sheet + insider buying</div><div class="x">~$9B cash vs ~$8B debt, ~4% dividend; open-market buys by Tim Cook ($2.95M), CEO Hill ($1.0M), Bob Swan.</div><div class="src2">CFRA, Guggenheim</div></div>
+        <div class="bb-item"><div class="h">Earnings power is underappreciated</div><div class="x">Bulls model FY28 EPS ~$2.67–3.00 and FCF yield rising 3.5%→8%. Jefferies: F4Q26 was the fundamental bottom.</div><div class="src2">CFRA, Bernstein, Jefferies</div></div>
+      </div>
+      <div class="bb-col bear" id="bear-col" style="--c:var(--bear)">
+        <h3>🐻 The Bear Case</h3>
+        <div class="bb-item"><div class="h">Lifestyle/Jordan overdistribution = ~50% of revenue</div><div class="x">These franchises are guided negative all of FY27, so any recovery hinges on them. Air Jordan 4 "Toro" liquidated at $150–170 vs $220 MSRP.</div><div class="src2">Seaport, Evercore</div></div>
+        <div class="bb-item"><div class="h">Structural competitive share loss</div><div class="x">On/Hoka/New Balance own premium running (Nike ceded price leadership); Adidas owns retro-court; Vuori/Alo/Lululemon own premium women's.</div><div class="src2">RBC</div></div>
+        <div class="bb-item"><div class="h">Greater China is structurally impaired</div><div class="x">Share loss to Anta/Li-Ning; the high-margin double-digit-growth "insurance policy" is gone. No bottom called.</div><div class="src2">Deutsche Bank, RBC</div></div>
+        <div class="bb-item"><div class="h">DTC demand still deteriorating</div><div class="x">Bloomberg card-spend proxy (−18% in F4Q26, −19% QTD); some online segments ~−50% y/y; markdown-trained consumers.</div><div class="src2">Needham</div></div>
+        <div class="bb-item"><div class="h">Wholesale leverage has flipped</div><div class="x">Nike re-enters from weakness on worse terms; summer MAP-break discounts widened with no volume uptick (no price elasticity).</div><div class="src2">Evercore, RBC</div></div>
+        <div class="bb-item"><div class="h">Valuation premium unwarranted</div><div class="x">~23× CY27 P/E, ~7 turns above the ~16× peer median; bears model FY27 EPS $1.50–1.75 and op margins of only ~6%.</div><div class="src2">KeyBanc, Evercore, Piper</div></div>
+      </div>
+    </div>
+
+    <div class="card reveal" style="margin-top:8px">
+      <h3>What would settle the debate</h3>
+      <div class="grid g2" style="margin-top:6px">
+        <div><b style="color:var(--bull)">Bull is right if…</b><ul class="list-check" style="margin-top:6px"><li>Gross margin turns positive in Q1 FY27 and holds</li><li>China revenue decline moderates toward flat</li><li>Lifestyle re-accelerates as new franchises launch (2H FY27)</li><li>Investor Day lays out a credible path back to ~10%+ margin</li></ul></div>
+        <div><b style="color:var(--bear)">Bear is right if…</b><ul class="list-x" style="margin-top:6px"><li>Wholesale sell-in keeps outrunning sell-through (supply-push)</li><li>China stays double-digit negative with no bottom</li><li>Markdowns rise without lifting volume (no pricing power)</li><li>FY27 guardrails land below consensus at Investor Day</li></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. RISKS -->
+<section id="risks">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">10 — KEY RISKS</div>
+      <h2>Ranked risks & what to monitor</h2>
+      <p class="sub">The five things most likely to break the thesis, ordered by how much they matter to the debate today.</p>
+    </div>
+    <div class="grid g3 reveal">
+      <div class="risk" style="--rc:var(--crit)"><div class="rt">1 · Greater China <span class="sev" style="background:rgba(229,72,77,.16);color:var(--crit)">High</span></div><div class="rx">Structural share loss to Anta/Li-Ning and a consumer that favours local brands. −13% cc in FY26 with no bottom called. Was Nike's highest-margin growth engine.</div><div class="watch"><b>Watch:</b> Pou Sheng monthly sales, reset-door comps, sell-in vs sell-through gap.</div></div>
+      <div class="risk" style="--rc:var(--serious)"><div class="rt">2 · Competition / brand heat <span class="sev" style="background:rgba(240,138,82,.16);color:var(--serious)">High</span></div><div class="rx">On, Hoka, New Balance, Adidas taking premium share. "Loyal to trend, not brand" fashion buyers have drifted away. Nike ceded running price leadership.</div><div class="watch"><b>Watch:</b> Running share, new-franchise sell-through, resale premiums, competitor cc growth.</div></div>
+      <div class="risk" style="--rc:var(--serious)"><div class="rt">3 · Tariffs / supply chain <span class="sev" style="background:rgba(240,138,82,.16);color:var(--serious)">Medium</span></div><div class="rx">~50% of footwear from Vietnam; a 10%→15% US tariff = ~220bps FY27 headwind. FY26's $986M refund won't repeat. Concentrated sourcing = fragility.</div><div class="watch"><b>Watch:</b> US tariff-rate changes, Section 301, mitigation progress, freight/oil costs.</div></div>
+      <div class="risk" style="--rc:var(--warn)"><div class="rt">4 · Wholesale reset execution <span class="sev" style="background:rgba(245,181,61,.16);color:var(--warn)">Medium</span></div><div class="rx">Re-entering wholesale from a position of weakness on worse terms; must avoid re-flooding channels while regaining shelf. Margin vs reach trade-off.</div><div class="watch"><b>Watch:</b> Foot Locker/Dick's order books, Amazon volume discipline, DTC stabilisation.</div></div>
+      <div class="risk" style="--rc:var(--warn)"><div class="rt">5 · Consumer / K-shaped spend <span class="sev" style="background:rgba(245,181,61,.16);color:var(--warn)">Medium</span></div><div class="rx">Demand decelerated in May on soft discretionary spending. Low-income cohorts (where mass Nike also plays) are pulling back; strength concentrated in affluent shoppers.</div><div class="watch"><b>Watch:</b> Card-spend proxies, traffic, markdown depth, back-to-school.</div></div>
+      <div class="risk" style="--rc:var(--neutral)"><div class="rt">6 · Inventory / markdown <span class="sev" style="background:rgba(154,160,166,.16);color:var(--neutral)">Lower</span></div><div class="rx">Inventory is now clean (~$7.5B, flat) — the least acute risk. The danger is a demand air-pocket forcing renewed clearance and undoing full-price progress.</div><div class="watch"><b>Watch:</b> Inventory growth vs sales, off-price mix, gross-margin bridge.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. WATCH -->
+<section id="watch">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">11 — WHAT TO WATCH</div>
+      <h2>The scoreboard: is the thesis playing out?</h2>
+      <p class="sub">Six KPIs that will tell you whether the turnaround is real, plus the near-term catalysts.</p>
+    </div>
+    <div class="grid g3 reveal" style="margin-bottom:18px">
+      <div class="kpiw"><div class="m">① Gross-margin inflection</div><div class="t">The single most important tell. Guided positive from Q1 FY27 — one quarter early.</div><div class="g">Target: GM turns positive y/y, holds into FY28</div></div>
+      <div class="kpiw"><div class="m">② China trajectory</div><div class="t">−13% cc in FY26. The market needs the decline to moderate, not necessarily grow.</div><div class="g">Target: decline narrows toward flat; sell-in turns</div></div>
+      <div class="kpiw"><div class="m">③ Wholesale sell-in vs sell-through</div><div class="t">Gap must keep narrowing — proof it's real demand, not channel-stuffing.</div><div class="g">Target: sell-through ≥ sell-in; order books grow</div></div>
+      <div class="kpiw"><div class="m">④ Lifestyle / Classics stabilisation</div><div class="t">~50% of revenue. Drag must fade from ~4ppt to ~2ppt and turn in 2H FY27.</div><div class="g">Target: new Spring-27 franchises scale</div></div>
+      <div class="kpiw"><div class="m">⑤ Nike Direct / digital</div><div class="t">Digital −12% is the soft spot; needs to stop shrinking as full-price returns.</div><div class="g">Target: DTC decline moderates, full-price mix up</div></div>
+      <div class="kpiw"><div class="m">⑥ Operating-margin path</div><div class="t">~8% today. The bull case needs a credible road back toward double digits.</div><div class="g">Target: FY28 op margin ~10% (mgmt goal)</div></div>
+    </div>
+    <div class="card reveal">
+      <h3>Near-term catalysts</h3>
+      <div class="tl" style="margin-top:14px">
+        <div class="ev next"><div class="d">AUG 17, 2026</div><div class="t">New CFO Dave Denton starts</div><div class="x">Watch the tone on capital allocation (buybacks paused) and guidance credibility.</div></div>
+        <div class="ev next"><div class="d">LATE SEP 2026</div><div class="t">F1Q27 earnings (quarter ending Aug 2026)</div><div class="x">First test of the gross-margin inflection and the −LSD/MSD sales guide.</div></div>
+        <div class="ev next"><div class="d">NOV 16–17, 2026</div><div class="t">Investor Day — the key event</div><div class="x">Mid-term growth & margin algorithm, Greater China strategy, Spring-2027 product roadmap, path to double-digit margins.</div></div>
+        <div class="ev"><div class="d">JUN–JUL 2026 →</div><div class="t">FIFA World Cup 2026 (hosted in North America)</div><div class="x">A live test of the refreshed football/marketing playbook and brand heat into Back-to-School.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h3 style="color:var(--ink);font-size:1.05rem">Sources & method</h3>
+    <p style="margin-top:8px">Built from a first-principles synthesis of the primary research in this folder — every material figure is traceable to one of the documents below — supplemented by Nike's public FY2025 10-K for manufacturing sourcing. Broker attributions are labelled throughout.</p>
+    <div class="src-strip">
+      <span>UBS — F4Q26 Preview & Three Critical Questions</span>
+      <span>Goldman Sachs — F4Q26 Review, Trackers & CFO note</span>
+      <span>Bernstein — F4Q26 Review, Retail Forum, Pou Sheng, K-Shaped, CFO note</span>
+      <span>AlphaSense — Bull/Bear aggregated sell-side</span>
+      <span>GS / UBS / Bernstein financial models</span>
+      <span>Nike FY2025 10-K (SEC)</span>
+    </div>
+    <div class="disc"><b>Disclaimer.</b> This dashboard is an educational research synthesis of third-party sell-side analysis and public filings. It is <b>not</b> investment advice, a recommendation, or an offer to buy or sell any security. Figures are as reported in the source documents (primarily the F4Q26 print of June 30, 2026) and may not reflect subsequent developments; the live price widget is provided by TradingView. Forecasts are the respective brokers' estimates, not the author's. Do your own research and consult a licensed financial adviser before making any investment decision.</div>
+    <p style="margin-top:16px;color:var(--muted)">NKE First-Principles Research Dashboard · Fiscal year ends end-of-May · Prices ≈ $41 (Jun 30, 2026).</p>
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
+<script>
+/* ============ PALETTE ============ */
+const C={blue:'#3f8ef0',aqua:'#22b183',yellow:'#e0a52b',violet:'#9b8bef',red:'#e5675f',magenta:'#dd6aa0',orange:'#e56b34',accent:'#ff6b2c',accent2:'#f4b400',bull:'#26c281',bear:'#ef5350',ink:'#f4f4f1',ink2:'#b6b6ae',muted:'#86867e',hair:'#2b2b31',surface:'#16161a'};
+const FONT="system-ui,-apple-system,'Segoe UI',sans-serif";
+
+/* ============ NAV SCROLLSPY ============ */
+const secs=[...document.querySelectorAll('section,header')];
+const navA=[...document.querySelectorAll('#navlinks a')];
+const spy=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navA.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});
+secs.forEach(s=>s.id&&spy.observe(s));
+
+/* ============ REVEAL ============ */
+const rev=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rev.unobserve(e.target);}});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>rev.observe(el));
+
+/* ============ COUNTERS ============ */
+function animateCount(el){
+  const t=parseFloat(el.dataset.count),dec=+el.dataset.dec||0,pre=el.dataset.pre||'',suf=el.dataset.suf||'';
+  let s=null;const dur=1300;
+  function step(ts){if(!s)s=ts;const p=Math.min((ts-s)/dur,1);const e=1-Math.pow(1-p,3);const v=t*e;
+    el.textContent=pre+v.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf;
+    if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+const cObs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){animateCount(e.target);cObs.unobserve(e.target);}});},{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>cObs.observe(el));
+
+/* ============ CHART DEFAULTS ============ */
+if(window.Chart){
+  Chart.defaults.font.family=FONT;
+  Chart.defaults.color=C.ink2;
+  Chart.defaults.font.size=11.5;
+  Chart.defaults.plugins.legend.labels.usePointStyle=true;
+  Chart.defaults.plugins.legend.labels.boxWidth=8;
+  Chart.defaults.plugins.legend.labels.padding=14;
+  Chart.defaults.plugins.tooltip.backgroundColor='#000';
+  Chart.defaults.plugins.tooltip.borderColor=C.hair;
+  Chart.defaults.plugins.tooltip.borderWidth=1;
+  Chart.defaults.plugins.tooltip.padding=10;
+  Chart.defaults.plugins.tooltip.titleColor=C.ink;
+  Chart.defaults.plugins.tooltip.bodyColor=C.ink2;
+  Chart.defaults.plugins.tooltip.cornerRadius=8;
+}
+const grid={color:'rgba(255,255,255,.06)'},gridX={color:'transparent'};
+const FY=['FY22','FY23','FY24','FY25','FY26','FY27E','FY28E','FY29E'];
+const charts={};
+
+/* ---------- Brands doughnut ---------- */
+new Chart(c('c-brands'),{type:'doughnut',data:{labels:['Nike Brand','Converse'],datasets:[{data:[45222,1174],backgroundColor:[C.accent,C.violet],borderColor:C.surface,borderWidth:2}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.label}: $${(x.raw/1000).toFixed(1)}B`}}}}});
+
+/* ---------- Product doughnut ---------- */
+new Chart(c('c-product'),{type:'doughnut',data:{labels:['Footwear','Apparel','Equipment','Converse'],datasets:[{data:[29525,13449,2199,1174],backgroundColor:[C.blue,C.aqua,C.yellow,C.violet],borderColor:C.surface,borderWidth:2}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.label}: $${(x.raw/1000).toFixed(1)}B`}}}}});
+
+/* ---------- Channel stacked ---------- */
+new Chart(c('c-channel'),{type:'bar',data:{labels:['FY24','FY25','FY26'],datasets:[
+  {label:'Wholesale',data:[27758,25883,27540],backgroundColor:C.blue,borderRadius:4,stack:'s'},
+  {label:'Nike Direct (DTC)',data:[21519,18783,17633],backgroundColor:C.accent,borderRadius:4,stack:'s'}
+]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: $${(x.raw/1000).toFixed(1)}B`}}},scales:{x:{grid:gridX,stacked:true},y:{grid:grid,stacked:true,ticks:{callback:v=>'$'+v/1000+'B'}}}}});
+
+/* ---------- Classics drag ---------- */
+new Chart(c('c-classics'),{type:'bar',data:{labels:['FY26','FY27E'],datasets:[{label:'Classics drag on total sales growth (ppt)',data:[-4,-2],backgroundColor:[C.bear,C.orange],borderRadius:5}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw} ppt headwind`}}},scales:{x:{grid:gridX},y:{grid:grid,max:0,ticks:{callback:v=>v+'ppt'}}}}});
+
+/* ---------- FY27 sales bridge (waterfall) ---------- */
+(function(){
+  const steps=[['FY26',0,46.4,C.muted],['Lifestyle FW',46.4,-1.0,C.bear],['Lifestyle Apparel',45.4,-0.1,C.bear],['Perf. FW',45.3,0.9,C.bull],['Perf. Apparel',46.2,0.3,C.bull],['Converse',46.5,-0.1,C.bear],['FY27E',0,46.4,C.muted]];
+  const base=[],val=[],col=[];
+  steps.forEach(s=>{if(s[1]===0){base.push(0);val.push(s[2]);}else{const d=s[3];if(s[2]>=0){base.push(s[1]);val.push(s[2]);}else{base.push(s[1]+s[2]);val.push(-s[2]);}}col.push(s[3]);});
+  new Chart(c('c-bridge'),{type:'bar',data:{labels:steps.map(s=>s[0]),datasets:[{data:base,backgroundColor:'transparent',stack:'w'},{data:val,backgroundColor:col,borderRadius:3,stack:'w'}]},options:{plugins:{legend:{display:false},tooltip:{filter:x=>x.datasetIndex===1,callbacks:{label:x=>{const s=steps[x.dataIndex];return s[1]===0?` $${s[2]}B`:` ${s[2]>0?'+':''}${s[2]}B`;}}}},scales:{x:{grid:gridX,ticks:{maxRotation:40,minRotation:40,font:{size:10}}},y:{grid:grid,min:44,max:47.5,ticks:{callback:v=>'$'+v+'B'}}}}});
+})();
+
+/* ---------- Region trajectory ---------- */
+new Chart(c('c-region'),{type:'line',data:{labels:FY,datasets:[
+  {label:'North America',data:[18.35,21.61,21.40,19.57,20.51,20.91,21.71,22.57],borderColor:C.blue,backgroundColor:C.blue,tension:.3,segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,4]:undefined}},
+  {label:'EMEA',data:[12.48,13.42,13.61,12.26,12.57,12.61,13.01,13.44],borderColor:C.aqua,backgroundColor:C.aqua,tension:.3,segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,4]:undefined}},
+  {label:'Greater China',data:[7.55,7.25,7.55,6.59,5.85,5.45,5.72,6.01],borderColor:C.red,backgroundColor:C.red,tension:.3,segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,4]:undefined}},
+  {label:'APLA',data:[5.96,6.43,6.73,6.25,6.24,6.31,6.55,6.81],borderColor:C.yellow,backgroundColor:C.yellow,tension:.3,segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,4]:undefined}}
+]},options:{interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: $${x.raw}B`}}},scales:{x:{grid:gridX},y:{grid:grid,ticks:{callback:v=>'$'+v+'B'}}}}});
+
+/* ---------- Pou Sheng monthly ---------- */
+(function(){
+  const labels=['Jul25','Aug','Sep','Oct','Nov','Dec','Jan26','Feb','Mar','Apr','May','Jun'];
+  const data=[-9,-6,-5,-1,-5,-11,-33,20,-6,0,-3,-8.6];
+  new Chart(c('c-pousheng'),{type:'bar',data:{labels,datasets:[{label:'Pou Sheng retail sales y/y %',data,backgroundColor:data.map(v=>v>=0?C.bull:C.red),borderRadius:3}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw>0?'+':''}${x.raw}% y/y`}}},scales:{x:{grid:gridX,ticks:{font:{size:9.5}}},y:{grid:grid,ticks:{callback:v=>v+'%'}}}}});
+})();
+
+/* ---------- Footwear sourcing ---------- */
+new Chart(c('c-fw'),{type:'bar',data:{labels:['Vietnam','Indonesia','China','Others'],datasets:[{data:[51,28,17,4],backgroundColor:[C.orange,C.orange,C.orange,C.muted],borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw}% of footwear`}}},scales:{x:{grid:grid,max:60,ticks:{callback:v=>v+'%'}},y:{grid:gridX}}}});
+
+/* ---------- Apparel sourcing ---------- */
+new Chart(c('c-ap'),{type:'bar',data:{labels:['Vietnam','China','Cambodia','Others'],datasets:[{data:[31,15,15,39],backgroundColor:[C.violet,C.violet,C.violet,C.muted],borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw}% of apparel`}}},scales:{x:{grid:grid,max:60,ticks:{callback:v=>v+'%'}},y:{grid:gridX}}}});
+
+/* ---------- Tariff / op-margin bridge ---------- */
+(function(){
+  const steps=[['FY26 margin',0,8.3,C.muted],['Tariff',8.3,-2.2,C.bear],['Full-price',6.1,0.7,C.bull],['Supply/product',6.8,0.75,C.bull],['Marketing',7.55,0.6,C.bull],['Overhead',8.15,0.1,C.bull],['FY27E margin',0,8.3,C.muted]];
+  const base=[],val=[],col=[];
+  steps.forEach(s=>{if(s[1]===0){base.push(0);val.push(s[2]);}else{if(s[2]>=0){base.push(s[1]);val.push(s[2]);}else{base.push(s[1]+s[2]);val.push(-s[2]);}}col.push(s[3]);});
+  new Chart(c('c-tariffbridge'),{type:'bar',data:{labels:steps.map(s=>s[0]),datasets:[{data:base,backgroundColor:'transparent',stack:'w'},{data:val,backgroundColor:col,borderRadius:3,stack:'w'}]},options:{plugins:{legend:{display:false},tooltip:{filter:x=>x.datasetIndex===1,callbacks:{label:x=>{const s=steps[x.dataIndex];return s[1]===0?` ${s[2]}% op margin`:` ${s[2]>0?'+':''}${(s[2]*100).toFixed(0)}bps`;}}}},scales:{x:{grid:gridX,ticks:{maxRotation:35,minRotation:35,font:{size:10}}},y:{grid:grid,min:5.5,max:8.8,ticks:{callback:v=>v+'%'}}}}});
+})();
+
+/* ---------- SG&A split ---------- */
+new Chart(c('c-sga'),{type:'bar',data:{labels:FY,datasets:[
+  {label:'Operating Overhead',data:[10.95,12.32,11.91,11.40,11.36,11.08,11.16,11.46],backgroundColor:C.blue,borderRadius:3,stack:'s'},
+  {label:'Demand Creation (marketing)',data:[3.85,4.06,4.29,4.69,4.75,4.76,4.95,5.15],backgroundColor:C.accent,borderRadius:3,stack:'s'}
+]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: $${x.raw}B`}}},scales:{x:{grid:gridX},y:{grid:grid,stacked:true,ticks:{callback:v=>'$'+v+'B'}}}}});
+
+/* ---------- GM drivers ---------- */
+(function(){
+  const labels=['Full-price\nASP','Product\ncosts','FX','DTC /\nchannel','Off-price\nmix','Other'];
+  const data=[155,-250,10,-100,120,50];
+  new Chart(c('c-gmdrivers'),{type:'bar',data:{labels,datasets:[{label:'GM change (bps)',data,backgroundColor:data.map(v=>v>=0?C.bull:C.bear),borderRadius:4}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw>0?'+':''}${x.raw} bps`}}},scales:{x:{grid:gridX,ticks:{font:{size:10}}},y:{grid:grid,ticks:{callback:v=>v+'bp'}}}}});
+})();
+
+/* ---------- Competitors ---------- */
+(function(){
+  const rows=[['On',26.4,C.aqua],['Adidas',14,C.blue],['Hoka',15,C.aqua],['Lululemon',2,C.yellow],['Puma',-1,C.muted],['Under Armour',-4,C.muted],['Nike',-4,C.accent]];
+  rows.sort((a,b)=>b[1]-a[1]);
+  new Chart(c('c-compete'),{type:'bar',data:{labels:rows.map(r=>r[0]),datasets:[{data:rows.map(r=>r[1]),backgroundColor:rows.map(r=>r[2]),borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.raw>0?'+':''}${x.raw}% cc`}}},scales:{x:{grid:grid,ticks:{callback:v=>v+'%'}},y:{grid:gridX}}}});
+})();
+
+/* ============ FINANCIALS (broker-toggle) ============ */
+const EST={
+  gs:{rev:[45.10,46.29,47.54],eps:[1.64,2.01,2.26],gm:[41.2,41.45,41.79],ebit:[6.51,7.27,7.85],name:'Goldman',color:C.red},
+  ubs:{rev:[45.92,47.74,49.63],eps:[1.55,1.95,2.30],gm:[41.5,42.2,42.8],ebit:[6.2,7.3,8.2],name:'UBS',color:C.yellow},
+  bern:{rev:[46.41,48.16,50.03],eps:[2.10,2.67,2.98],gm:[42.2,43.1,43.5],ebit:[8.1,9.7,10.3],name:'Bernstein',color:C.bull}
+};
+const ACT={rev:[46.71,51.22,51.36,46.31,46.40],eps:[3.75,3.23,3.73,2.16,2.10],gm:[45.98,43.52,44.6,42.73,42.9],ebit:[14.68,12.1,12.3,8.0,8.2]};
+let brokerMode='all';
+
+function estDatasets(metric,fmt){
+  const order=brokerMode==='all'?['gs','ubs','bern']:[brokerMode];
+  return order.map(k=>{
+    const e=EST[k];
+    return {label:e.name+' (E)',data:[null,null,null,null,ACT[metric][4],...e[metric]],borderColor:e.color,backgroundColor:e.color,borderDash:[5,4],tension:.25,pointStyle:'rectRot',pointRadius:4,spanGaps:true};
+  });
+}
+function buildRev(){
+  const ds=[{type:'bar',label:'Actual',data:[...ACT.rev,null,null,null],backgroundColor:ACT.rev.map((v,i)=>i>=3?'rgba(255,107,44,.55)':C.accent).concat([]),borderRadius:4,order:2}];
+  estDatasets('rev').forEach(d=>{d.type='line';d.order=1;ds.push(d);});
+  return ds;
+}
+function buildEps(){
+  const ds=[{type:'bar',label:'Actual',data:[...ACT.eps,null,null,null],backgroundColor:C.accent,borderRadius:4,order:2}];
+  estDatasets('eps').forEach(d=>{d.type='line';d.order=1;ds.push(d);});
+  return ds;
+}
+function makeRev(){if(charts.rev)charts.rev.destroy();charts.rev=new Chart(c('c-rev'),{data:{labels:FY,datasets:buildRev()},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>x.raw==null?null:` ${x.dataset.label}: $${(+x.raw).toFixed(1)}B`}}},scales:{x:{grid:gridX},y:{grid:grid,min:40,ticks:{callback:v=>'$'+v+'B'}}}}});}
+function makeEps(){if(charts.eps)charts.eps.destroy();charts.eps=new Chart(c('c-eps'),{data:{labels:FY,datasets:buildEps()},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>x.raw==null?null:` ${x.dataset.label}: $${(+x.raw).toFixed(2)}`}}},scales:{x:{grid:gridX},y:{grid:grid,ticks:{callback:v=>'$'+v}}}}});}
+function makeMargins(){
+  if(charts.mg)charts.mg.destroy();
+  const gmDs=estDatasets('gm').map(d=>({...d,label:d.label.replace('(E)','GM')}));
+  const order=brokerMode==='all'?['bern']:[brokerMode]; // ebit line: show one to avoid clutter unless single
+  const ebitEst=(brokerMode==='all'?['gs','ubs','bern']:[brokerMode]).map(k=>({label:EST[k].name+' EBIT',data:[null,null,null,null,ACT.ebit[4],...EST[k].ebit],borderColor:EST[k].color,borderDash:[2,3],tension:.25,pointRadius:0,spanGaps:true}));
+  charts.mg=new Chart(c('c-margins'),{type:'line',data:{labels:FY,datasets:[
+    {label:'Gross margin (A)',data:[...ACT.gm,null,null,null],borderColor:C.blue,backgroundColor:C.blue,tension:.25,pointRadius:3},
+    {label:'EBIT margin (A)',data:[...ACT.ebit,null,null,null],borderColor:C.accent,backgroundColor:C.accent,tension:.25,pointRadius:3},
+    ...gmDs.map(d=>({...d,borderColor:C.blue,pointStyle:'rectRot',borderDash:[5,4]})),
+    ...ebitEst
+  ]},options:{interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{filter:i=>!i.text.includes('GM')||brokerMode!=='all'}},tooltip:{callbacks:{label:x=>x.raw==null?null:` ${x.dataset.label}: ${(+x.raw).toFixed(1)}%`}}},scales:{x:{grid:gridX},y:{grid:grid,ticks:{callback:v=>v+'%'}}}}});
+}
+function makeAllFin(){makeRev();makeEps();makeMargins();}
+makeAllFin();
+
+/* FCF + inventory (static, consensus-ish) */
+new Chart(c('c-fcf'),{data:{labels:FY,datasets:[
+  {type:'bar',label:'Free cash flow ($B)',data:[4.4,4.9,6.6,3.3,2.0,3.5,3.8,4.2],backgroundColor:C.aqua,borderRadius:4,yAxisID:'y'},
+  {type:'line',label:'Inventory ($B)',data:[8.42,8.45,7.52,7.49,7.50,7.57,7.58,7.67],borderColor:C.accent2,backgroundColor:C.accent2,tension:.3,yAxisID:'y',pointRadius:3}
+]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: $${(+x.raw).toFixed(1)}B`}}},scales:{x:{grid:gridX},y:{grid:grid,min:0,ticks:{callback:v=>'$'+v+'B'}}}}});
+
+/* Peers P/E */
+(function(){
+  const rows=[['Nike',20.4,16.0,C.accent],['Adidas',18.2,14.2,C.blue],['On',20.0,16.0,C.aqua],['Deckers (Hoka)',9.9,9.5,C.yellow],['Lululemon',10.1,8.9,C.violet],['Tapestry',20.5,17.7,C.magenta]];
+  new Chart(c('c-peers'),{type:'bar',data:{labels:rows.map(r=>r[0]),datasets:[
+    {label:'FY26E P/E',data:rows.map(r=>r[1]),backgroundColor:rows.map(r=>r[3]),borderRadius:4},
+    {label:'FY27E P/E',data:rows.map(r=>r[2]),backgroundColor:rows.map(r=>r[3]+'66'),borderRadius:4}
+  ]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: ${x.raw}×`}}},scales:{x:{grid:gridX,ticks:{font:{size:10}}},y:{grid:grid,ticks:{callback:v=>v+'×'}}}}});
+})();
+
+/* Scenario */
+new Chart(c('c-scenario'),{type:'bar',data:{labels:['Bear','Base','Bull'],datasets:[{label:'Implied value / share',data:[14,49,83],backgroundColor:[C.bear,C.yellow,C.bull],borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` $${x.raw} (${['9× FY29 EPS $1.50','21× FY29 EPS $2.30','24× FY29 EPS $3.45'][x.dataIndex]})`}}},scales:{x:{grid:grid,ticks:{callback:v=>'$'+v}},y:{grid:gridX}}}});
+
+/* ============ PT RANGE BAR ============ */
+(function(){
+  const box=document.getElementById('ptbar');
+  const pts=[['GS',42],['Piper/RBC',45],['Evercore',46],['UBS',50],['BTIG',55],['Bernstein',72],['Jefferies',75]];
+  const min=40,max=77;const pos=v=>((v-min)/(max-min))*100;
+  const track=document.createElement('div');track.className='track';box.appendChild(track);
+  pts.forEach(p=>{const d=document.createElement('div');d.className='mk';d.style.left=pos(p[1])+'%';d.innerHTML=`<div class="val">$${p[1]}</div><div class="dot"></div><div class="lbl">${p[0]}</div>`;box.appendChild(d);});
+  const cur=document.createElement('div');cur.className='cur';cur.style.left=pos(41.05)+'%';cur.innerHTML=`<div class="t">$41 now</div><div class="bar"></div>`;box.appendChild(cur);
+})();
+
+/* ============ BULL/BEAR TOGGLE ============ */
+document.getElementById('bb-toggle').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#bb-toggle button').forEach(x=>x.classList.remove('act'));b.classList.add('act');
+  const v=b.dataset.v;
+  document.getElementById('bull-col').style.display=(v==='bear')?'none':'';
+  document.getElementById('bear-col').style.display=(v==='bull')?'none':'';
+  document.querySelector('.bb-grid').style.gridTemplateColumns=(v==='both')?'1fr 1fr':'1fr';
+});
+
+/* ============ BROKER TOGGLE ============ */
+document.getElementById('broker-toggle').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#broker-toggle button').forEach(x=>x.classList.remove('act'));b.classList.add('act');
+  brokerMode=b.dataset.b;makeAllFin();
+});
+
+/* ============ MAPS ============ */
+function c(id){return document.getElementById(id);}
+const REG={
+  na:{name:'North America',rev:'$20.5B',g:'+5% cc',color:C.blue},
+  emea:{name:'EMEA',rev:'$12.6B',g:'−3% cc',color:C.aqua},
+  gc:{name:'Greater China',rev:'$5.8B',g:'−13% cc',color:C.red},
+  apla:{name:'Asia Pacific & Latin America',rev:'$6.2B',g:'+2% cc',color:C.yellow}
+};
+const CO2REG={
+  US:'na',CA:'na',
+  CN:'gc',HK:'gc',TW:'gc',MO:'gc',
+  GB:'emea',IE:'emea',FR:'emea',DE:'emea',ES:'emea',IT:'emea',PT:'emea',NL:'emea',BE:'emea',LU:'emea',CH:'emea',AT:'emea',SE:'emea',NO:'emea',DK:'emea',FI:'emea',PL:'emea',CZ:'emea',SK:'emea',HU:'emea',RO:'emea',BG:'emea',GR:'emea',HR:'emea',SI:'emea',RS:'emea',UA:'emea',TR:'emea',RU:'emea',IS:'emea',EE:'emea',LV:'emea',LT:'emea',
+  SA:'emea',AE:'emea',QA:'emea',KW:'emea',BH:'emea',OM:'emea',IL:'emea',JO:'emea',LB:'emea',EG:'emea',MA:'emea',DZ:'emea',TN:'emea',ZA:'emea',NG:'emea',KE:'emea',GH:'emea',
+  JP:'apla',KR:'apla',IN:'apla',ID:'apla',TH:'apla',VN:'apla',MY:'apla',PH:'apla',SG:'apla',AU:'apla',NZ:'apla',PK:'apla',BD:'apla',LK:'apla',KH:'apla',
+  MX:'apla',BR:'apla',AR:'apla',CL:'apla',CO:'apla',PE:'apla',EC:'apla',UY:'apla',VE:'apla',BO:'apla',PY:'apla',CR:'apla',PA:'apla',GT:'apla',DO:'apla'
+};
+function buildGeoMap(){
+  if(!window.jsVectorMap){return;}
+  const values={};
+  for(const co in CO2REG){values[co]=REG[CO2REG[co]].color;}
+  try{
+    new jsVectorMap({
+      selector:'#geo-map',map:'world',
+      backgroundColor:'transparent',
+      zoomButtons:true,zoomOnScroll:false,
+      regionStyle:{initial:{fill:'#26262c',stroke:'#0a0a0b','stroke-width':0.4},hover:{fillOpacity:.85}},
+      series:{regions:[{attribute:'fill',values}]},
+      markers:[
+        {name:'North America',coords:[39.5,-98.35]},
+        {name:'EMEA',coords:[50.1,9.0]},
+        {name:'Greater China',coords:[34.0,108.0]},
+        {name:'APLA',coords:[1.0,110.0]}
+      ],
+      markerStyle:{initial:{fill:C.accent,stroke:'#fff','stroke-width':1.5,r:7},hover:{fill:C.accent2}},
+      onRegionTooltipShow(event,tooltip,code){
+        const r=CO2REG[code];
+        if(r){const s=REG[r];tooltip.text(`${s.name} — ${s.rev} (${s.g})`,false);}
+      },
+      onMarkerTooltipShow(event,tooltip,index){
+        const names=['North America — $20.5B, +5% cc','EMEA — $12.6B, −3% cc','Greater China — $5.8B, −13% cc','APLA — $6.2B, +2% cc'];
+        tooltip.text(names[index],false);
+      }
+    });
+  }catch(err){console.warn('geo map',err);document.getElementById('geo-map').innerHTML='<div style="padding:30px;color:#86867e">Map failed to load.</div>';}
+}
+function buildSupplyMap(){
+  if(!window.jsVectorMap){return;}
+  try{
+    new jsVectorMap({
+      selector:'#supply-map',map:'world',
+      backgroundColor:'transparent',
+      zoomButtons:true,zoomOnScroll:false,
+      regionStyle:{initial:{fill:'#26262c',stroke:'#0a0a0b','stroke-width':0.4}},
+      markers:[
+        {name:'Vietnam — FW 51%, Apparel 31%',coords:[16.0,107.8]},
+        {name:'Indonesia — FW 28%',coords:[-2.5,118.0]},
+        {name:'China — FW 17%, Apparel 15%',coords:[34.0,104.0]},
+        {name:'Cambodia — Apparel 15%',coords:[12.5,104.9]}
+      ],
+      markerStyle:{initial:{fill:C.orange,stroke:'#fff','stroke-width':1.4,r:9},hover:{fill:C.accent2}},
+      markersSelectable:false,
+      onMarkerTooltipShow(event,tooltip,index){
+        const t=['Vietnam — 51% of footwear, 31% of apparel','Indonesia — 28% of footwear','China — 17% of footwear, 15% of apparel','Cambodia — 15% of apparel'];
+        tooltip.text(t[index],false);
+      }
+    });
+  }catch(err){console.warn('supply map',err);document.getElementById('supply-map').innerHTML='<div style="padding:30px;color:#86867e">Map failed to load.</div>';}
+}
+buildGeoMap();
+buildSupplyMap();
+</script>
+</body>
+</html>
